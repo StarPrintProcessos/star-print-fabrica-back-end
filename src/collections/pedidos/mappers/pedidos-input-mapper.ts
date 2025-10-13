@@ -234,10 +234,9 @@ function campoCalculadoMetragemQuadradaOperadores(arrayName) {
                 },
               ],
             },
-
             // Senão → mantém o valor atual (ou null, se não existir)
             `$${arrayName}.metragem_quadrada`,
-          ],
+          ]
         },
       },
     },
@@ -265,9 +264,9 @@ function campoCalculadoMetragemQuadradaOperadores(arrayName) {
           $mergeObjects: ['$doc', { [arrayName]: `$${arrayName}` }],
         },
       },
-    }
+    },
   ];
-}
+};
 
 const campoCalculadoMetragemQuadradaImpressores =
   campoCalculadoMetragemQuadradaOperadores('impressores');
@@ -367,6 +366,83 @@ const camposCalculadosPerda = {
     },
   },
 };
+
+function campoCalculadoMetragemQuadradaPerdidaOperadores(arrayName) {
+  return [
+    { $unwind: { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        [`${arrayName}.perda_metragem_quadrada`]: {
+          $cond: [
+            {
+              $and: [
+                // 1️⃣ o arrayName existe (não é null / ausente)
+                { $ne: [{ $ifNull: [`$${arrayName}`, null] }, null] },
+
+                // 2️⃣ o campo perda_metragem_quadrada é nulo ou não existe
+                {
+                  $or: [
+                    {
+                      $eq: [
+                        { $type: `$${arrayName}.perda_metragem_quadrada` },
+                        'missing',
+                      ],
+                    },
+                    { $eq: [`$${arrayName}.perda_metragem_quadrada`, null] },
+                  ],
+                },
+              ],
+            },
+            // Então → faz o cálculo
+            {
+              $multiply: [
+                { $toDouble: `$perda.m2` },
+                {
+                  $divide: [
+                    { $toDouble: `$${arrayName}.metragem_quadrada` },
+                    { $toDouble: '$producao.producao_m2' },
+                  ],
+                },
+              ],
+            },
+            // Senão → mantém o valor atual (ou null, se não existir)
+            `$${arrayName}.perda_metragem_quadrada`,
+          ],
+        }
+      },
+    },
+    {
+      $group: {
+        _id: '$_id',
+        [arrayName]: { $push: `$${arrayName}` },
+        doc: { $first: '$$ROOT' },
+      },
+    },
+    {
+      $addFields: {
+        [arrayName]: {
+          $filter: {
+            input: `$${arrayName}`,
+            as: 'i',
+            cond: { $gt: [{ $size: { $objectToArray: '$$i' } }, 0] },
+          },
+        },
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: ['$doc', { [arrayName]: `$${arrayName}` }],
+        },
+      },
+    },
+  ];
+}
+
+const campoCalculadoMetragemQuadradaPerdidaImpressores =
+  campoCalculadoMetragemQuadradaPerdidaOperadores('impressores');
+const campoCalculadoMetragemQuadradaPerdidaCortadores =
+  campoCalculadoMetragemQuadradaPerdidaOperadores('cortadores');
 
 interface PedidosInputMapperConfig {
   primaryFilter?: boolean;
@@ -468,6 +544,8 @@ export function pedidosAggregationSteps(
     ...campoCalculadoMetragemQuadradaImpressores,
     ...campoCalculadoMetragemQuadradaCortadores,
     ...campoCalculadoMetragemQuadradaRevisores,
+    ...campoCalculadoMetragemQuadradaPerdidaImpressores,
+    ...campoCalculadoMetragemQuadradaPerdidaCortadores
   );
 
   const secondaryFilter = mapInputToSecondaryFilter(dto);
