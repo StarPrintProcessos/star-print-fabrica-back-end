@@ -11,7 +11,6 @@ import { PedidosModule } from './collections/pedidos/pedidos.module';
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
         uri: cfg.get<string>('MONGO_URI'),
-        dbName: cfg.get<string>('MONGO_DB'),
         serverSelectionTimeoutMS: 5000,
         directConnection: true,
       }),
