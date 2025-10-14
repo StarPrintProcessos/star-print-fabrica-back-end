@@ -44,9 +44,9 @@ USER appuser
 # Porta padrão usada por Nest; ajuste se necessário (ex.: 3000)
 EXPOSE 3000
 
-# Healthcheck simples — adapte endpoint se sua app usa outro path
+# Healthcheck simples — usando a raiz da aplicação
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-  CMD wget -q -O- http://localhost:3000/health || exit 1
+  CMD wget -q -O- http://localhost:3000/ || exit 1
 
-# Comando padrão para rodar em produção (usa node para rodar o build em dist/)
+# Comando para iniciar a aplicação em produção
 CMD ["node", "dist/main"]

@@ -19,6 +19,10 @@ async function bootstrap() {
     app.enableCors();
   }
 
-  await app.listen(process.env.BACK_END_PORT ?? 3000);
+  // Em produção, escuta em todas as interfaces (0.0.0.0)
+  // Isso é crucial para contêineres Docker
+  const port = process.env.BACK_END_PORT ?? 3000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Aplicação rodando na porta ${port}`);
 }
 bootstrap();
