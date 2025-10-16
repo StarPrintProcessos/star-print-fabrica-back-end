@@ -14,6 +14,7 @@ async function bootstrap() {
     .setTitle('Star Print API')
     .setDescription('API para o sistema da Star Print')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
@@ -21,7 +22,10 @@ async function bootstrap() {
   if (process.env.NODE_ENV === 'production') {
     // Habilita CORS para o frontend e para o acesso via navegador
     app.enableCors({
-      origin: [process.env.FRONT_END_URL, 'https://backapp.starprintonline.com'],
+      origin: [
+        process.env.FRONT_END_URL,
+        'https://backapp.starprintonline.com',
+      ],
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true, // se precisar enviar cookies
     });
@@ -36,6 +40,8 @@ async function bootstrap() {
   const port = configService.get('BACK_END_PORT') || 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`Aplicação rodando na porta ${port}`);
-  // console.log(`Documentação Swagger disponível em: http://localhost:${port}/api`);
+  console.log(
+    `Documentação Swagger disponível em: http://localhost:${port}/api`,
+  );
 }
 bootstrap();
