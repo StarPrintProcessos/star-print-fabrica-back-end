@@ -37,11 +37,25 @@ async function bootstrap() {
   // Em produção, escuta em todas as interfaces (0.0.0.0)
   // Isso é crucial para contêineres Docker
   const configService = app.get(ConfigService);
-  const port = configService.get('BACK_END_PORT') || 3000;
-  await app.listen(port, '0.0.0.0');
-  console.log(`Aplicação rodando na porta ${port}`);
-  console.log(
-    `Documentação Swagger disponível em: http://localhost:${port}/api`,
-  );
+  let port = configService.get('BACK_END_PORT') || 3000;
+  let listening = false;
+
+  while (!listening) {
+    try {
+      await app.listen(port, '0.0.0.0');
+      listening = true;
+      console.log(`Aplicação rodando na porta ${port}`);
+      console.log(
+        `Documentação Swagger disponível em: http://localhost:${port}/api`,
+      );
+    } catch (err) {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`Porta ${port} ocupada, tentando próxima porta...`);
+        port++;
+      } else {
+        throw err;
+      }
+    }
+  }
 }
 bootstrap();
