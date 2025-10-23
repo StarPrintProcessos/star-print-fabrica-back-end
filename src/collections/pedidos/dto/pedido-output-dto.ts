@@ -101,8 +101,8 @@ export class PedidoOutputDTO {
     };
   }[];
   nc?: {
-    checklist: string;
-    rastreio: string;
+    checklist: boolean;
+    rastreio: boolean;
   };
   observacao?: string;
   pasta_de_arquivamento?: string;

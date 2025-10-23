@@ -16,22 +16,32 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-objectid.pipe';
 import { PedidosFilterInputDTO } from './dto/pedidos-filter-input.dto';
 import { PedidosService } from './pedidos.service';
+import { Pedido } from './schemas/pedidos.schema';
 
 @Controller('pedidos')
 export class PedidosController {
-  constructor(private readonly svc: PedidosService) {}
+  constructor(private readonly svc: PedidosService) { }
 
-//   @UseGuards(JwtAuthGuard)
-//   @ApiBearerAuth()
-//   @Post()
-//   create(@Body() body: any) {
-//     return this.svc.create(body);
-//   }
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post()
+  async create(@Body() body: Partial<Pedido>): Promise<Pedido> {
+    return this.svc.create(body);
+  }
 
-  //   @UseGuards(JwtAuthGuard)
-  //   @ApiBearerAuth()
-  // @Get()
-  // findAll() { return this.svc.findAll(); }
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Patch(':id')
+  async patch(@Param('id', ParseObjectIdPipe) id: Types.ObjectId, @Body() body: Partial<Pedido>): Promise<Pedido> {
+    if (body.datas) {
+      for (const key of Object.keys(body.datas)) {
+        body.datas[key] = new Date(body.datas[key]);
+      }
+    }
+
+    return this.svc.patch(id, body);
+  }
+
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -62,17 +72,10 @@ export class PedidosController {
     return this.svc.findById(id);
   }
 
-//   @UseGuards(JwtAuthGuard)
-//   @ApiBearerAuth()
-//   @Patch(':id')
-//   update(@Param('id', ParseObjectIdPipe) id: string, @Body() body: any) {
-//     return this.svc.update(id, body);
-//   }
-
-//   @UseGuards(JwtAuthGuard)
-//   @ApiBearerAuth()
-//   @Delete(':id')
-//   remove(@Param('id', ParseObjectIdPipe) id: string) {
-//     return this.svc.remove(id);
-//   }
+  //   @UseGuards(JwtAuthGuard)
+  //   @ApiBearerAuth()
+  //   @Delete(':id')
+  //   remove(@Param('id', ParseObjectIdPipe) id: string) {
+  //     return this.svc.remove(id);
+  //   }
 }

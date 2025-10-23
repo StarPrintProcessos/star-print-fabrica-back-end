@@ -4,13 +4,28 @@ import { Model, Types } from 'mongoose';
 import { PedidosFilterInputDTO } from './dto/pedidos-filter-input.dto';
 import { pedidosAggregationSteps } from './mappers/pedidos-input-mapper';
 import { Pedido, PedidoDocument } from './schemas/pedidos.schema';
+import { flattenObject } from 'src/common/utils/flatten-object';
 
 @Injectable()
 export class PedidosService {
-  constructor(@InjectModel(Pedido.name) private model: Model<PedidoDocument>) {}
+  constructor(@InjectModel(Pedido.name) private model: Model<PedidoDocument>) { }
 
-  create(dto: Partial<Pedido>) {
-    return this.model.create(dto);
+  // --- CREATE ---
+  async create(payload: Partial<Pedido>): Promise<Pedido> {
+    const created = new this.model(payload);
+    return created.save();
+  }
+
+  // --- PATCH (atualização parcial) ---
+  async patch(id: Types.ObjectId, payload: Partial<Pedido>): Promise<Pedido> {
+    const flattened = flattenObject(payload);
+
+    const updated = await this.model
+      .findByIdAndUpdate(id, { $set: flattened }, { new: true })
+      .exec();
+
+    if (!updated) throw new NotFoundException(`Pedido ${id} não encontrado`);
+    return updated;
   }
 
   // findAll() {

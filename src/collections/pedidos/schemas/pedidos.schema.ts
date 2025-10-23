@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Type } from 'class-transformer';
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
 
 export type PedidoDocument = HydratedDocument<Pedido>;
@@ -19,9 +20,14 @@ class CortadorItem {
 }
 
 class Datas {
-  @Prop({ required: true }) baixa_pcp!: Date;
-  @Prop({ required: true }) finalizacao!: Date;
-  @Prop({ required: true }) pedido!: Date;
+  @Prop()
+  baixa_pcp: Date;
+  
+  @Prop()
+  finalizacao: Date;
+
+  @Prop({ required: true })
+  pedido!: Date;
 }
 
 class Detalhes {
@@ -48,8 +54,8 @@ class ImpressorItem {
 }
 
 class NC {
-  @Prop({ required: true }) checklist!: string;
-  @Prop({ required: true }) rastreio!: string;
+  @Prop({ required: true }) checklist!: boolean;
+  @Prop({ required: true }) rastreio!: boolean;
 }
 
 class Perda {
