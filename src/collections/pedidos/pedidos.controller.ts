@@ -16,7 +16,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-objectid.pipe';
 import { PedidosFilterInputDTO } from './dto/pedidos-filter-input.dto';
 import { PedidosService } from './pedidos.service';
-import { Pedido } from './schemas/pedidos.schema';
+import { formatPedido, Pedido } from './schemas/pedidos.schema';
 
 @Controller('pedidos')
 export class PedidosController {
@@ -26,6 +26,7 @@ export class PedidosController {
   @ApiBearerAuth()
   @Post()
   async create(@Body() body: Partial<Pedido>): Promise<Pedido> {
+    body = formatPedido(body);
     return this.svc.create(body);
   }
 
@@ -33,11 +34,7 @@ export class PedidosController {
   @ApiBearerAuth()
   @Patch(':id')
   async patch(@Param('id', ParseObjectIdPipe) id: Types.ObjectId, @Body() body: Partial<Pedido>): Promise<Pedido> {
-    if (body.datas) {
-      for (const key of Object.keys(body.datas)) {
-        body.datas[key] = new Date(body.datas[key]);
-      }
-    }
+    body = formatPedido(body);
 
     return this.svc.patch(id, body);
   }

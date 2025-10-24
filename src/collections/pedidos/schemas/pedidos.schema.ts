@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Type } from 'class-transformer';
 import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
 
 export type PedidoDocument = HydratedDocument<Pedido>;
@@ -20,18 +19,18 @@ class CortadorItem {
 }
 
 class Datas {
-  @Prop()
+  @Prop({ type: Date })
   baixa_pcp: Date;
   
-  @Prop()
+  @Prop({ type: Date })
   finalizacao: Date;
 
-  @Prop({ required: true })
+  @Prop({ required: true, type: Date })
   pedido!: Date;
 }
 
 class Detalhes {
-  @Prop({ required: false }) tipo_de_servico?: string;
+  @Prop() tipo_de_servico?: string;
   @Prop({ required: true }) acabamento_cold!: boolean;
   @Prop({ required: true }) amostra!: boolean;
   @Prop({ required: true }) desconsiderar_metragem!: boolean;
@@ -84,7 +83,9 @@ class RevisorItem {
   @Prop({ required: true }) operador!: string;
 }
 
-@Schema({ timestamps: true, collection: 'Pedidos' }) // <- usa sua coleção
+@Schema({ 
+  timestamps: true,
+  collection: 'Pedidos' }) // <- usa sua coleção
 export class Pedido {
   @Prop({ type: Types.ObjectId }) _id?: Types.ObjectId;
 
@@ -125,22 +126,44 @@ export const PedidoSchema = SchemaFactory.createForClass(Pedido);
 
 // (Opcional) normalizações simples antes de salvar
 PedidoSchema.pre('save', function (next) {
-  // Ex.: se vier "123" como string em métricas, tenta converter
+
+  formatPedido(this);
+
+  next();
+});
+
+export function formatPedido(obj: any): Pedido {
   const toNum = (v: any) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v);
-  this.cortadores?.forEach((c: any) => {
+  const toDate = (v: any) => {
+    if (!v) return v;
+    if (v instanceof Date) return v;
+    const parsed = new Date(v);
+    return isNaN(parsed.getTime()) ? v : parsed;
+  };
+
+  // Conversões numéricas
+  obj.cortadores?.forEach((c: any) => {
     c.metragem_linear = toNum(c.metragem_linear);
     c.perda_metragem_quadrada = toNum(c.perda_metragem_quadrada);
   });
-  this.impressores?.forEach((i: any) => {
+  obj.impressores?.forEach((i: any) => {
     i.metragem_linear = toNum(i.metragem_linear);
     i.perda_metragem_quadrada = toNum(i.perda_metragem_quadrada);
   });
-  this.revisores?.forEach((r: any) => {
+  obj.revisores?.forEach((r: any) => {
     r.metragem_linear = toNum(r.metragem_linear);
   });
-  if (this.producao) {
-    this.producao.metragem_linear = toNum(this.producao.metragem_linear);
-    this.producao.metros_por_pacote = toNum(this.producao.metros_por_pacote);
+  if (obj.producao) {
+    obj.producao.metragem_linear = toNum(obj.producao.metragem_linear);
+    obj.producao.metros_por_pacote = toNum(obj.producao.metros_por_pacote);
   }
-  next();
-});
+
+  // Conversão de datas
+  if (obj.datas) {
+      obj.datas.pedido = toDate(obj.datas.pedido);
+      obj.datas.baixa_pcp = toDate(obj.datas.baixa_pcp);
+      obj.datas.finalizacao = toDate(obj.datas.finalizacao);
+  }
+
+  return obj;
+}
