@@ -1,14 +1,15 @@
 import {
   Body,
+  ConflictException,
   Controller,
-  Delete,
   Get,
+  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { Types } from 'mongoose';
@@ -20,7 +21,7 @@ import { formatPedido, Pedido } from './schemas/pedidos.schema';
 
 @Controller('pedidos')
 export class PedidosController {
-  constructor(private readonly svc: PedidosService) { }
+  constructor(private readonly svc: PedidosService) {}
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -33,12 +34,27 @@ export class PedidosController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Patch(':id')
-  async patch(@Param('id', ParseObjectIdPipe) id: Types.ObjectId, @Body() body: Partial<Pedido>): Promise<Pedido> {
+  async patch(
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+    @Body() body: Partial<Pedido>,
+  ): Promise<Pedido> {
     body = formatPedido(body);
 
-    return this.svc.patch(id, body);
-  }
+    try {
+      return await this.svc.patch(id, body);
+    } catch (err: any) {
+      if (err?.code === 11000 && err.keyPattern?.codigo) {
+        // conflito de duplicidade no campo "codigo"
+        throw new ConflictException({
+          message: 'Já existe um pedido com este código.',
+          field: 'codigo',
+          duplicatedValue: err.keyValue?.codigo,
+        });
+      }
 
+      throw new InternalServerErrorException('Erro ao atualizar o pedido.');
+    }
+  }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
