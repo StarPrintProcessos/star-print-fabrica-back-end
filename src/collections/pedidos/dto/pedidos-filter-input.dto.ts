@@ -81,6 +81,11 @@ export class PedidosFilterInputDTO  {
   @IsOptional()
   @IsString({ each: true })
   @Transform(({ value }) => (value as string).split(',').map(v => v.trim()).filter(v => v.length > 0))
+  tipos_de_material?: string[];
+
+  @IsOptional()
+  @IsString({ each: true })
+  @Transform(({ value }) => (value as string).split(',').map(v => v.trim()).filter(v => v.length > 0))
   segmentos?: string[];
 
   @IsOptional()

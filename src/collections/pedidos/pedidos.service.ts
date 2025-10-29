@@ -71,12 +71,15 @@ export class PedidosService {
     ];
 
     const [result] = await this.model.aggregate(pipeline).allowDiskUse(true);
-    return {
+
+    const res = {
       page: dto.page,
       limit: dto.limit,
       total: result?.total ?? 0,
       items: result?.items ?? [],
     };
+
+    return res;
   }
 
   async metrics(dto: PedidosFilterInputDTO): Promise<any> {

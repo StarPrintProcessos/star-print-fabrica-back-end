@@ -79,60 +79,94 @@ const lookupsFaca = [
 ];
 
 const lookupsMaterial = [
-  // 1) Lookup para "Materiais" pelo campo codigo
+  // 1) Lookup para "Materiais" pelo campo codigo (só se material_codigo existir)
   {
     $lookup: {
-      from: 'Materiais',
-      let: { codigoLocal: '$producao.material_codigo' },
-      pipeline: [
-        { $match: { $expr: { $eq: ['$codigo', '$$codigoLocal'] } } },
-        { $limit: 1 },
-      ],
-      as: 'producao.material_arr',
-    },
-  },
-
-  // 2) transformar array em objeto único (null se vazio)
-  {
-    $addFields: {
-      'producao.material': { $arrayElemAt: ['$producao.material_arr', 0] },
-    },
-  },
-
-  // 3) Lookup para "Matéria-Prima" usando o materia_prima_codigo vindo do documento de larguras
-  {
-    $lookup: {
-      from: 'Matérias-Primas',
-      let: { mid: '$producao.material.materia_prima_id' },
+      from: "Materiais",
+      let: { codigoLocal: "$producao.material_codigo" },
       pipeline: [
         {
-          // se materia_prima_id for string e _id for ObjectId, talvez precise converter: { $expr: { $eq: ["$_id", { $toObjectId: "$$mid" }] } }
-          // se tipos já coincidirem, a linha abaixo funciona:
-          $match: { $expr: { $eq: ['$_id', '$$mid'] } },
+          $match: {
+            $expr: {
+              $and: [
+                { $ne: ["$$codigoLocal", null] },       // só roda se existir
+                { $eq: ["$codigo", "$$codigoLocal"] }
+              ]
+            }
+          }
         },
-        { $limit: 1 },
+        { $limit: 1 }
       ],
-      as: 'producao.material.materia_prima_arr',
-    },
+      as: "producao.material_arr"
+    }
   },
 
-  // 4) transformar em objeto único e remover o array temporário
+  // 2) Usa o lookup apenas se 'producao.material' ainda não existir
   {
     $addFields: {
-      'producao.material.materia_prima': {
-        $arrayElemAt: ['$producao.material.materia_prima_arr', 0],
-      },
-    },
+      "producao.material": {
+        $ifNull: [
+          "$producao.material",
+          { $arrayElemAt: ["$producao.material_arr", 0] }
+        ]
+      }
+    }
   },
+
+  // 3) Lookup para "Matérias-Primas" (só se materia_prima_id existir)
+  {
+    $lookup: {
+      from: "Matérias-Primas",
+      let: {
+        mid: "$producao.material.materia_prima_id",
+        // tenta converter para ObjectId apenas se for string
+        midObj: {
+          $cond: [
+            { $eq: [{ $type: "$producao.material.materia_prima_id" }, "string"] },
+            { $toObjectId: "$producao.material.materia_prima_id" },
+            "$producao.material.materia_prima_id"
+          ]
+        }
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $ne: ["$$mid", null] },              // só roda se existir
+                { $eq: ["$_id", "$$midObj"] }
+              ]
+            }
+          }
+        },
+        { $limit: 1 }
+      ],
+      as: "producao.material.materia_prima_arr"
+    }
+  },
+
+  // 4) Usa o lookup apenas se 'producao.material.materia_prima' ainda não existir
+  {
+    $addFields: {
+      "producao.material.materia_prima": {
+        $ifNull: [
+          "$producao.material.materia_prima",
+          { $arrayElemAt: ["$producao.material.materia_prima_arr", 0] }
+        ]
+      }
+    }
+  },
+
+  // 5) Limpeza de temporários — torna o pipeline idempotente
   {
     $unset: [
-      'producao.material_arr',
-      'producao.material_codigo',
-      'producao.material.materia_prima_arr',
-      'producao.material.materia_prima_id',
-      'producao.material.ativo',
-    ],
-  },
+      "producao.material_arr",
+      "producao.material.materia_prima_arr",
+      "producao.material.ativo",
+      "producao.material.materia_prima_id",
+      "producao.material_codigo"
+    ]
+  }
 ];
 
 function lookupsMaquinaArray(arrayName: string) {
@@ -506,6 +540,12 @@ export function pedidosAggregationSteps(
     lookups.push(...lookupsFaca);
   }
 
+  const buscaTipoMaterialStep = {
+    $match: {
+      'producao.material.materia_prima.tipo': { $in: dto.tipos_de_material }
+    }
+  };
+
   if (config?.lookupsMaterial !== false) {
     lookups.push(...lookupsMaterial);
   }
@@ -557,6 +597,10 @@ export function pedidosAggregationSteps(
 
     if (dto.busca_cliente) {
       aggregationSteps.push(...lookupsCliente, buscaClienteStep);
+    }
+
+    if ((dto.tipos_de_material || []).filter(t => !!t).length > 0) {
+      aggregationSteps.push(...lookupsMaterial, buscaTipoMaterialStep);
     }
 
     if (dto.tipos_de_servico) {
@@ -618,6 +662,10 @@ export function pedidosAggregationSteps(
 
     if (dto.busca_cliente) {
       aggregationSteps.push(buscaClienteStep);
+    }
+
+    if ((dto.tipos_de_material || []).filter(t => !!t).length > 0) {
+      aggregationSteps.push(buscaTipoMaterialStep);
     }
 
     aggregationSteps.push(...camposCalculados);

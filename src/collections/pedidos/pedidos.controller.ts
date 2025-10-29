@@ -51,7 +51,8 @@ export class PedidosController {
   @ApiBearerAuth()
   @Get('paginated')
   findPaged(@Query() q: PedidosFilterInputDTO) {
-    return this.svc.findPaged(q);
+    const res = this.svc.findPaged(q);
+    return res;
   }
 
   @UseGuards(JwtAuthGuard)
