@@ -27,10 +27,12 @@ class Datas {
 
   @Prop({ required: true, type: Date })
   pedido!: Date;
+
+  @Prop({ required: true, type: Date })
+  previsao!: Date;
 }
 
 class Detalhes {
-  @Prop() tipo_de_servico?: string;
   @Prop({ required: true }) acabamento_cold!: boolean;
   @Prop({ required: true }) amostra!: boolean;
   @Prop({ required: true }) desconsiderar_metragem!: boolean;
@@ -49,7 +51,7 @@ class ImpressorItem {
   @Prop({ required: true }) maquina_codigo!: number;
   @Prop({ required: true, type: Number }) metragem_linear!: number;
   @Prop({ required: true }) operador!: string;
-  @Prop({ required: true, type: Number }) perda_metragem_quadrada!: number;
+  @Prop({ type: Number }) perda_metragem_quadrada?: number;
 }
 
 class NC {
@@ -67,9 +69,6 @@ class Producao {
   @Prop({ required: true }) algo_novo!: string[];
   @Prop({ required: true }) cores!: number;
   @Prop() material_codigo?: number;
-  @Prop({ type: MongooseSchema.Types.Mixed, default: null }) material_largura?: any; // null no seu schema
-  @Prop({ required: true }) material_largura_mm!: number;
-  @Prop({ required: true }) material_nome!: string;
   @Prop({ required: true, type: Number }) metragem_linear!: number;
   @Prop({ required: true, type: Number }) metros_por_pacote!: number;
   @Prop({ required: true }) pistas_de_corte!: number;
@@ -84,18 +83,17 @@ class RevisorItem {
 }
 
 @Schema({ 
-  timestamps: true,
-  collection: 'Pedidos' }) // <- usa sua coleção
+  timestamps: false,
+  versionKey: false,
+  collection: 'Pedidos' })
 export class Pedido {
-  @Prop({ type: Types.ObjectId }) _id?: Types.ObjectId;
-
   @Prop({ type: Atraso }) atraso?: Atraso;
 
   @Prop({ required: true }) cliente_codigo!: number;
 
   @Prop({ required: true }) codigo!: number;
 
-  @Prop({ required: true, type: [CortadorItem] }) cortadores!: CortadorItem[];
+  @Prop({ type: [CortadorItem] }) cortadores?: CortadorItem[];
 
   @Prop({ required: true, type: Datas }) datas!: Datas;
 
@@ -105,7 +103,7 @@ export class Pedido {
   
   @Prop({ required: true, type: Faca }) faca!: Faca;
 
-  @Prop({ required: true, type: [ImpressorItem] }) impressores!: ImpressorItem[];
+  @Prop({ type: [ImpressorItem] }) impressores?: ImpressorItem[];
 
   @Prop({ type: NC }) nc?: NC;
 
@@ -117,7 +115,7 @@ export class Pedido {
 
   @Prop({ required: true, type: Producao }) producao!: Producao;
 
-  @Prop({ required: true, type: [RevisorItem] }) revisores!: RevisorItem[];
+  @Prop({ type: [RevisorItem] }) revisores?: RevisorItem[];
 
   @Prop() validado?: boolean;
 }
@@ -133,7 +131,9 @@ PedidoSchema.pre('save', function (next) {
 });
 
 export function formatPedido(obj: any): Pedido {
-  const toNum = (v: any) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : v);
+  const toNum = (v: any) =>
+    typeof v === 'string' && v.trim() !== '' ? Number(v) : v;
+
   const toDate = (v: any) => {
     if (!v) return v;
     if (v instanceof Date) return v;
@@ -141,7 +141,6 @@ export function formatPedido(obj: any): Pedido {
     return isNaN(parsed.getTime()) ? v : parsed;
   };
 
-  // Conversões numéricas
   obj.cortadores?.forEach((c: any) => {
     c.metragem_linear = toNum(c.metragem_linear);
     c.perda_metragem_quadrada = toNum(c.perda_metragem_quadrada);
@@ -158,12 +157,12 @@ export function formatPedido(obj: any): Pedido {
     obj.producao.metros_por_pacote = toNum(obj.producao.metros_por_pacote);
   }
 
-  // Conversão de datas
   if (obj.datas) {
-      obj.datas.pedido = toDate(obj.datas.pedido);
-      obj.datas.baixa_pcp = toDate(obj.datas.baixa_pcp);
-      obj.datas.finalizacao = toDate(obj.datas.finalizacao);
+    obj.datas.pedido = toDate(obj.datas.pedido);
+    obj.datas.baixa_pcp = toDate(obj.datas.baixa_pcp);
+    obj.datas.finalizacao = toDate(obj.datas.finalizacao);
   }
 
   return obj;
 }
+

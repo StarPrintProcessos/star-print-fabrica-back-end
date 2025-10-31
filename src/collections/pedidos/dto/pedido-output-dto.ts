@@ -7,6 +7,7 @@ export class PedidoOutputDTO {
     baixa_pcp?: Date;
     finalizacao?: Date;
     pedido: Date;
+    previsao: Date;
   };
   atraso: {
     dias: number;

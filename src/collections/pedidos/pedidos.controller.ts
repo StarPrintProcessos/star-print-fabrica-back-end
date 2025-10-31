@@ -15,6 +15,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-objectid.pipe';
+import { PedidoInputDTO } from './dto/pedido-input-dto';
 import { PedidosFilterInputDTO } from './dto/pedidos-filter-input.dto';
 import { PedidosService } from './pedidos.service';
 import { formatPedido, Pedido } from './schemas/pedidos.schema';
@@ -32,9 +33,10 @@ export class PedidosController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post()
-  async create(@Body() body: Pedido): Promise<CreateFlowResult> {
-    const formatted = formatPedido(body);
-    return this.svc.createOrReplaceByCodigo(formatted);
+  async create(@Body() body: PedidoInputDTO): Promise<CreateFlowResult> {
+    body = formatPedido(body);
+    
+    return this.svc.createOrReplaceByCodigo(body);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -42,7 +44,7 @@ export class PedidosController {
   @Patch(':id')
   async patch(
     @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
-    @Body() body: Partial<Pedido>,
+    @Body() body: Partial<PedidoInputDTO>,
   ): Promise<Pedido> {
     body = formatPedido(body);
 

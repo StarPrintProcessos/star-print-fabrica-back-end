@@ -5,19 +5,24 @@ import { PedidosFilterInputDTO } from './dto/pedidos-filter-input.dto';
 import { pedidosAggregationSteps } from './mappers/pedidos-input-mapper';
 import { Pedido, PedidoDocument } from './schemas/pedidos.schema';
 import { flattenObject } from 'src/common/utils/flatten-object';
+import { PedidoInputDTO } from './dto/pedido-input-dto';
 
 @Injectable()
 export class PedidosService {
   constructor(@InjectModel(Pedido.name) private model: Model<PedidoDocument>) {}
 
   // --- CREATE ---
-  async create(payload: Pedido): Promise<Pedido> {
+  async create(payload: PedidoInputDTO): Promise<Pedido> {
+    delete (payload as any)._id;
     const created = new this.model(payload);
     return created.save();
   }
 
   // --- replace total pelo _id (retorna documento atualizado) ---
-  private async replaceById(id: string, payload: Pedido): Promise<Pedido> {
+  private async replaceById(
+    id: string,
+    payload: PedidoInputDTO,
+  ): Promise<Pedido> {
     // garante que o _id do payload seja o mesmo do doc existente
     const { _id, ...rest } = (payload as any) || {};
     await this.model.replaceOne({ _id: id }, rest, { upsert: false }).exec();
@@ -26,7 +31,7 @@ export class PedidosService {
 
   // --- fluxo solicitado ---
   async createOrReplaceByCodigo(
-    payload: Pedido,
+    payload: PedidoInputDTO,
   ): Promise<{ action: 'created' | 'replaced' | 'ignored'; pedido: Pedido }> {
     const codigo = payload.codigo;
     if (!codigo) {
@@ -35,7 +40,13 @@ export class PedidosService {
       return { action: 'created', pedido: created };
     }
 
-    const existing = await this.findByCodigo(codigo);
+    let existing: Pedido | null = null;
+    try {
+      existing = await this.findByCodigo(codigo);
+    } catch (e) {
+      // se for NotFoundException, trata como null; se não, relança
+      if (!(e instanceof NotFoundException)) throw e;
+    }
 
     if (!existing) {
       const created = await this.create(payload);
@@ -57,7 +68,7 @@ export class PedidosService {
   }
 
   // --- PATCH (atualização parcial) ---
-  async patch(id: Types.ObjectId, payload: Partial<Pedido>): Promise<Pedido> {
+  async patch(id: Types.ObjectId, payload: Partial<PedidoInputDTO>): Promise<Pedido> {
     const flattened = flattenObject(payload);
 
     const updated = await this.model
