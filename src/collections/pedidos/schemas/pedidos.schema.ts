@@ -89,7 +89,7 @@ class RevisorItem {
 export class Pedido {
   @Prop({ type: Types.ObjectId }) _id?: Types.ObjectId;
 
-  @Prop({ required: true, type: Atraso }) atraso!: Atraso;
+  @Prop({ type: Atraso }) atraso?: Atraso;
 
   @Prop({ required: true }) cliente_codigo!: number;
 
