@@ -3,7 +3,8 @@ import { Document } from 'mongoose';
 
 export type UserDocument = User & Document;
 
-export type AccountType = 'admin' | 'manager' | 'operator';
+export const ACCOUNT_TYPES = ['admin', 'manager', 'operator', 'automation'] as const;
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
 @Schema({ timestamps: true, collection: 'Users' })
 export class User {
