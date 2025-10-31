@@ -119,7 +119,7 @@ export class Pedido {
 
   @Prop({ required: true, type: [RevisorItem] }) revisores!: RevisorItem[];
 
-  @Prop({ required: true }) validado!: boolean;
+  @Prop() validado?: boolean;
 }
 
 export const PedidoSchema = SchemaFactory.createForClass(Pedido);

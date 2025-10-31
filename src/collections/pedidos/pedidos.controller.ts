@@ -19,16 +19,22 @@ import { PedidosFilterInputDTO } from './dto/pedidos-filter-input.dto';
 import { PedidosService } from './pedidos.service';
 import { formatPedido, Pedido } from './schemas/pedidos.schema';
 
+type CreateFlowResult = {
+  action: 'created' | 'replaced' | 'ignored';
+  pedido: Pedido;
+};
+
 @Controller('pedidos')
 export class PedidosController {
   constructor(private readonly svc: PedidosService) {}
 
+
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post()
-  async create(@Body() body: Partial<Pedido>): Promise<Pedido> {
-    body = formatPedido(body);
-    return this.svc.create(body);
+  async create(@Body() body: Pedido): Promise<CreateFlowResult> {
+    const formatted = formatPedido(body);
+    return this.svc.createOrReplaceByCodigo(formatted);
   }
 
   @UseGuards(JwtAuthGuard)

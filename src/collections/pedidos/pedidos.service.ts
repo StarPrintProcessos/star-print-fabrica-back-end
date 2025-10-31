@@ -8,12 +8,52 @@ import { flattenObject } from 'src/common/utils/flatten-object';
 
 @Injectable()
 export class PedidosService {
-  constructor(@InjectModel(Pedido.name) private model: Model<PedidoDocument>) { }
+  constructor(@InjectModel(Pedido.name) private model: Model<PedidoDocument>) {}
 
   // --- CREATE ---
-  async create(payload: Partial<Pedido>): Promise<Pedido> {
+  async create(payload: Pedido): Promise<Pedido> {
     const created = new this.model(payload);
     return created.save();
+  }
+
+  // --- replace total pelo _id (retorna documento atualizado) ---
+  private async replaceById(id: string, payload: Pedido): Promise<Pedido> {
+    // garante que o _id do payload seja o mesmo do doc existente
+    const { _id, ...rest } = (payload as any) || {};
+    await this.model.replaceOne({ _id: id }, rest, { upsert: false }).exec();
+    return this.model.findById(id).lean<Pedido>().exec() as any;
+  }
+
+  // --- fluxo solicitado ---
+  async createOrReplaceByCodigo(
+    payload: Pedido,
+  ): Promise<{ action: 'created' | 'replaced' | 'ignored'; pedido: Pedido }> {
+    const codigo = payload.codigo;
+    if (!codigo) {
+      // se preferir, lance BadRequestException; aqui criamos direto para manter compatibilidade
+      const created = await this.create(payload);
+      return { action: 'created', pedido: created };
+    }
+
+    const existing = await this.findByCodigo(codigo);
+
+    if (!existing) {
+      const created = await this.create(payload);
+      return { action: 'created', pedido: created };
+    }
+
+    // já existe com este código
+    if ((existing as any).validado === true) {
+      // descartado: retorna o existente sem alterações
+      return { action: 'ignored', pedido: existing };
+    }
+
+    // não validado -> replace completo pelo payload
+    const replaced = await this.replaceById(
+      (existing as any)._id.toString(),
+      payload,
+    );
+    return { action: 'replaced', pedido: replaced };
   }
 
   // --- PATCH (atualização parcial) ---
