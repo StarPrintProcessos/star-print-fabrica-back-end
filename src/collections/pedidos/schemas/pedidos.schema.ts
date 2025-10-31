@@ -6,7 +6,7 @@ export type PedidoDocument = HydratedDocument<Pedido>;
 class Atraso {
   @Prop() categoria?: string;
   @Prop() desconsiderar?: boolean;
-  @Prop({ required: true }) dias!: number;
+  @Prop() dias?: number;
   @Prop() investigacao?: string;
   @Prop() motivo?: string;
 }
@@ -58,9 +58,9 @@ class NC {
 }
 
 class Perda {
-  @Prop({ required: true }) investigacao!: string;
+  @Prop() investigacao?: string;
   @Prop() justificativa?: string;
-  @Prop({ required: true }) motivo!: string;
+  @Prop() motivo?: string;
 }
 
 class Producao {
@@ -113,7 +113,7 @@ export class Pedido {
 
   @Prop() pasta_de_arquivamento?: string;
 
-  @Prop({ required: true, type: Perda }) perda!: Perda;
+  @Prop({ type: Perda }) perda?: Perda;
 
   @Prop({ required: true, type: Producao }) producao!: Producao;
 
