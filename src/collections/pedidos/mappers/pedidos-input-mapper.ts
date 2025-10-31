@@ -82,91 +82,93 @@ const lookupsMaterial = [
   // 1) Lookup para "Materiais" pelo campo codigo (só se material_codigo existir)
   {
     $lookup: {
-      from: "Materiais",
-      let: { codigoLocal: "$producao.material_codigo" },
+      from: 'Materiais',
+      let: { codigoLocal: '$producao.material_codigo' },
       pipeline: [
         {
           $match: {
             $expr: {
               $and: [
-                { $ne: ["$$codigoLocal", null] },       // só roda se existir
-                { $eq: ["$codigo", "$$codigoLocal"] }
-              ]
-            }
-          }
+                { $ne: ['$$codigoLocal', null] }, // só roda se existir
+                { $eq: ['$codigo', '$$codigoLocal'] },
+              ],
+            },
+          },
         },
-        { $limit: 1 }
+        { $limit: 1 },
       ],
-      as: "producao.material_arr"
-    }
+      as: 'producao.material_arr',
+    },
   },
 
   // 2) Usa o lookup apenas se 'producao.material' ainda não existir
   {
     $addFields: {
-      "producao.material": {
+      'producao.material': {
         $ifNull: [
-          "$producao.material",
-          { $arrayElemAt: ["$producao.material_arr", 0] }
-        ]
-      }
-    }
+          '$producao.material',
+          { $arrayElemAt: ['$producao.material_arr', 0] },
+        ],
+      },
+    },
   },
 
   // 3) Lookup para "Matérias-Primas" (só se materia_prima_id existir)
   {
     $lookup: {
-      from: "Matérias-Primas",
+      from: 'Matérias-Primas',
       let: {
-        mid: "$producao.material.materia_prima_id",
+        mid: '$producao.material.materia_prima_id',
         // tenta converter para ObjectId apenas se for string
         midObj: {
           $cond: [
-            { $eq: [{ $type: "$producao.material.materia_prima_id" }, "string"] },
-            { $toObjectId: "$producao.material.materia_prima_id" },
-            "$producao.material.materia_prima_id"
-          ]
-        }
+            {
+              $eq: [{ $type: '$producao.material.materia_prima_id' }, 'string'],
+            },
+            { $toObjectId: '$producao.material.materia_prima_id' },
+            '$producao.material.materia_prima_id',
+          ],
+        },
       },
       pipeline: [
         {
           $match: {
             $expr: {
               $and: [
-                { $ne: ["$$mid", null] },              // só roda se existir
-                { $eq: ["$_id", "$$midObj"] }
-              ]
-            }
-          }
+                { $ne: ['$$mid', null] }, // só roda se existir
+                { $eq: ['$_id', '$$midObj'] },
+              ],
+            },
+          },
         },
-        { $limit: 1 }
+        { $limit: 1 },
       ],
-      as: "producao.material.materia_prima_arr"
-    }
+      as: 'producao.material.materia_prima_arr',
+    },
   },
 
   // 4) Usa o lookup apenas se 'producao.material.materia_prima' ainda não existir
   {
     $addFields: {
-      "producao.material.materia_prima": {
+      'producao.material.materia_prima': {
         $ifNull: [
-          "$producao.material.materia_prima",
-          { $arrayElemAt: ["$producao.material.materia_prima_arr", 0] }
-        ]
-      }
-    }
+          '$producao.material.materia_prima',
+          { $arrayElemAt: ['$producao.material.materia_prima_arr', 0] },
+        ],
+      },
+    },
   },
 
   // 5) Limpeza de temporários — torna o pipeline idempotente
   {
     $unset: [
-      "producao.material_arr",
-      "producao.material.materia_prima_arr",
-      "producao.material.ativo",
-      "producao.material.materia_prima_id",
-      "producao.material_codigo"
-    ]
-  }
+      'producao.material_arr',
+      'producao.material.materia_prima_arr',
+      'producao.material.ativo',
+      'producao.material.materia_prima_id',
+      'producao.material_codigo',
+    ],
+  },
 ];
 
 function lookupsMaquinaArray(arrayName: string) {
@@ -270,7 +272,7 @@ function campoCalculadoMetragemQuadradaOperadores(arrayName) {
             },
             // Senão → mantém o valor atual (ou null, se não existir)
             `$${arrayName}.metragem_quadrada`,
-          ]
+          ],
         },
       },
     },
@@ -300,7 +302,7 @@ function campoCalculadoMetragemQuadradaOperadores(arrayName) {
       },
     },
   ];
-};
+}
 
 const campoCalculadoMetragemQuadradaImpressores =
   campoCalculadoMetragemQuadradaOperadores('impressores');
@@ -442,7 +444,7 @@ function campoCalculadoMetragemQuadradaPerdidaOperadores(arrayName) {
             // Senão → mantém o valor atual (ou null, se não existir)
             `$${arrayName}.perda_metragem_quadrada`,
           ],
-        }
+        },
       },
     },
     {
@@ -542,8 +544,8 @@ export function pedidosAggregationSteps(
 
   const buscaTipoMaterialStep = {
     $match: {
-      'producao.material.materia_prima.tipo': { $in: dto.tipos_de_material }
-    }
+      'producao.material.materia_prima.tipo': { $in: dto.tipos_de_material },
+    },
   };
 
   if (config?.lookupsMaterial !== false) {
@@ -585,7 +587,7 @@ export function pedidosAggregationSteps(
     ...campoCalculadoMetragemQuadradaCortadores,
     ...campoCalculadoMetragemQuadradaRevisores,
     ...campoCalculadoMetragemQuadradaPerdidaImpressores,
-    ...campoCalculadoMetragemQuadradaPerdidaCortadores
+    ...campoCalculadoMetragemQuadradaPerdidaCortadores,
   );
 
   const secondaryFilter = mapInputToSecondaryFilter(dto);
@@ -599,7 +601,7 @@ export function pedidosAggregationSteps(
       aggregationSteps.push(...lookupsCliente, buscaClienteStep);
     }
 
-    if ((dto.tipos_de_material || []).filter(t => !!t).length > 0) {
+    if ((dto.tipos_de_material || []).filter((t) => !!t).length > 0) {
       aggregationSteps.push(...lookupsMaterial, buscaTipoMaterialStep);
     }
 
@@ -664,7 +666,7 @@ export function pedidosAggregationSteps(
       aggregationSteps.push(buscaClienteStep);
     }
 
-    if ((dto.tipos_de_material || []).filter(t => !!t).length > 0) {
+    if ((dto.tipos_de_material || []).filter((t) => !!t).length > 0) {
       aggregationSteps.push(buscaTipoMaterialStep);
     }
 
@@ -766,7 +768,13 @@ function mapInputToPrimaryFilter(
     filter['detalhes.acabamento_cold'] = dto.acabamento_cold;
 
   if (dto.validado !== null && dto.validado !== undefined) {
-    filter['validado'] = dto.validado;
+    if (dto.validado === true) {
+      filter['validado'] = true;
+    } else {
+      filter['$and'].push({
+        $or: [{ validado: false }, { validado: { $exists: false } }]
+      });
+    }
   }
 
   if (filter.$and.length === 0) {
