@@ -16,7 +16,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // payload = { sub: userId, email, ... }
     // Você pode buscar o usuário no banco para garantir dados atualizados:
     const user = await this.usersService.findById(payload.sub);
     // Retorne o que quer ter em req.user:

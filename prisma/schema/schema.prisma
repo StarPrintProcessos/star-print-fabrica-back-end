@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model atrasos_de_os {
+  data_de_ocorrencia DateTime? @db.Date
+  cliente            String?
+  os                 BigInt?
+  tipo               String?
+  categoria          String?
+  acao               String?
+  codigo             BigInt    @id
+  relator            String?
+  fase               String?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model clientes {
+  codigo             BigInt    @id(map: "Clientes_pkey")
+  nome_fantasia      String?
+  razao_social       String?
+  contato_compras    String?
+  contato_financeiro String?
+  fone_1             String?
+  email              String?
+  fone_2             String?
+  vendedor           String?
+  pedidos            pedidos[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model facas {
+  codigo           String    @id(map: "Facas_pkey")
+  tipo             String?
+  medida           String?
+  largura          BigInt?
+  altura           BigInt?
+  colunas          BigInt?
+  fator            Float?
+  numero_de_dentes BigInt?
+  l1_corte         BigInt?
+  pedidos          pedidos[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model feriados {
+  Data      DateTime @id @db.Date
+  Descri__o String?  @map("Descrição")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model maquinas {
+  codigo            BigInt              @id(map: "Máquinas_pkey")
+  atividades        String[]
+  tipos             String[]
+  designacao        String?
+  pedidos_operacoes pedidos_operacoes[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model materiais {
+  codigo               BigInt           @id(map: "Materiais_pkey")
+  largura_mm           BigInt?
+  ativo                Boolean?
+  materia_prima_codigo BigInt?
+  materias_primas      materias_primas? @relation(fields: [materia_prima_codigo], references: [codigo], onDelete: NoAction, onUpdate: NoAction, map: "Materiais_materia_prima_codigo_fkey")
+  pedidos              pedidos[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model materias_primas {
+  nome      String?
+  tipo      String?
+  codigo    BigInt      @id(map: "Matérias-Primas_pkey") @default(autoincrement())
+  materiais materiais[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model operadores {
+  codigo            BigInt              @id(map: "Operadores_pkey")
+  registro          String?
+  nome_completo     String?
+  turno             String?
+  ativo             Boolean?
+  pedidos_operacoes pedidos_operacoes[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pedidos {
+  codigo                                 BigInt              @id(map: "Pedidos_pkey")
+  datas_pedido                           DateTime?           @map("datas.pedido") @db.Timestamptz(6)
+  datas_finalizacao                      DateTime?           @map("datas.finalizacao") @db.Timestamptz(6)
+  datas_baixa_pcp                        DateTime?           @map("datas.baixa_pcp") @db.Timestamptz(6)
+  datas_previsao                         DateTime?           @map("datas.previsao") @db.Timestamptz(6)
+  cliente_codigo                         BigInt?
+  descricao                              String?
+  faca_codigo                            String?             @map("faca.codigo")
+  detalhes_redimensionamento             Boolean?            @map("detalhes.redimensionamento")
+  detalhes_amostra                       Boolean?            @map("detalhes.amostra")
+  detalhes_acabamento_cold               Boolean?            @map("detalhes.acabamento_cold")
+  detalhes_retrabalho                    Boolean?            @map("detalhes.retrabalho")
+  detalhes_desconsiderar_metragem        Boolean?            @map("detalhes.desconsiderar_metragem")
+  producao_cores                         String?             @map("producao.cores")
+  producao_pistas_de_corte               BigInt?             @map("producao.pistas_de_corte")
+  producao_metros_por_pacote             Float?              @map("producao.metros_por_pacote")
+  producao_quantidade_por_pacote         BigInt?             @map("producao.quantidade_por_pacote")
+  producao_material_codigo               BigInt?             @map("producao.material_codigo")
+  producao_metragem_linear               Float?              @map("producao.metragem_linear")
+  producao_unidades_produzidas           BigInt?             @map("producao.unidades_produzidas")
+  perda_investigacao                     String?             @map("perda.investigacao")
+  perda_motivo                           String?             @map("perda.motivo")
+  perda_justificativa                    String?             @map("perda.justificativa")
+  impressores_0__operador                String?             @map("impressores[0].operador")
+  impressores_1__operador                String?             @map("impressores[1].operador")
+  impressores_2__operador                String?             @map("impressores[2].operador")
+  impressores_3__operador                String?             @map("impressores[3].operador")
+  impressores_0__maquina_codigo          String?             @map("impressores[0].maquina_codigo")
+  impressores_1__maquina_codigo          String?             @map("impressores[1].maquina_codigo")
+  impressores_2__maquina_codigo          String?             @map("impressores[2].maquina_codigo")
+  impressores_3__maquina_codigo          String?             @map("impressores[3].maquina_codigo")
+  impressores_0__metragem_linear         String?             @map("impressores[0].metragem_linear")
+  impressores_1__metragem_linear         String?             @map("impressores[1].metragem_linear")
+  impressores_2__metragem_linear         String?             @map("impressores[2].metragem_linear")
+  impressores_3__metragem_linear         String?             @map("impressores[3].metragem_linear")
+  impressores_0__perda_metragem_quadrada String?             @map("impressores[0].perda_metragem_quadrada")
+  impressores_1__perda_metragem_quadrada String?             @map("impressores[1].perda_metragem_quadrada")
+  impressores_2__perda_metragem_quadrada String?             @map("impressores[2].perda_metragem_quadrada")
+  impressores_3__perda_metragem_quadrada String?             @map("impressores[3].perda_metragem_quadrada")
+  revisores_0__operador                  String?             @map("revisores[0].operador")
+  revisores_1__operador                  String?             @map("revisores[1].operador")
+  revisores_2__operador                  String?             @map("revisores[2].operador")
+  revisores_3__operador                  String?             @map("revisores[3].operador")
+  revisores_4__operador                  String?             @map("revisores[4].operador")
+  revisores_5__operador                  String?             @map("revisores[5].operador")
+  revisores_6__operador                  String?             @map("revisores[6].operador")
+  revisores_7__operador                  String?             @map("revisores[7].operador")
+  revisores_8__operador                  String?             @map("revisores[8].operador")
+  revisores_0__maquina_codigo            String?             @map("revisores[0].maquina_codigo")
+  revisores_1__maquina_codigo            String?             @map("revisores[1].maquina_codigo")
+  revisores_2__maquina_codigo            String?             @map("revisores[2].maquina_codigo")
+  revisores_3__maquina_codigo            String?             @map("revisores[3].maquina_codigo")
+  revisores_4__maquina_codigo            String?             @map("revisores[4].maquina_codigo")
+  revisores_5__maquina_codigo            String?             @map("revisores[5].maquina_codigo")
+  revisores_6__maquina_codigo            String?             @map("revisores[6].maquina_codigo")
+  revisores_7__maquina_codigo            String?             @map("revisores[7].maquina_codigo")
+  revisores_8__maquina_codigo            String?             @map("revisores[8].maquina_codigo")
+  revisores_0__metragem_linear           String?             @map("revisores[0].metragem_linear")
+  revisores_1__metragem_linear           String?             @map("revisores[1].metragem_linear")
+  revisores_2__metragem_linear           String?             @map("revisores[2].metragem_linear")
+  revisores_3__metragem_linear           String?             @map("revisores[3].metragem_linear")
+  revisores_4__metragem_linear           String?             @map("revisores[4].metragem_linear")
+  revisores_5__metragem_linear           String?             @map("revisores[5].metragem_linear")
+  revisores_6__metragem_linear           String?             @map("revisores[6].metragem_linear")
+  revisores_7__metragem_linear           String?             @map("revisores[7].metragem_linear")
+  revisores_8__metragem_linear           String?             @map("revisores[8].metragem_linear")
+  nc_checklist                           Boolean?            @map("nc.checklist")
+  nc_rastreio                            Boolean?            @map("nc.rastreio")
+  validado                               Boolean?
+  atraso_investigacao                    String?             @map("atraso.investigacao")
+  observacao                             String?
+  cortadores_0__operador                 String?             @map("cortadores[0].operador")
+  cortadores_1__operador                 String?             @map("cortadores[1].operador")
+  cortadores_2__operador                 String?             @map("cortadores[2].operador")
+  cortadores_3__operador                 String?             @map("cortadores[3].operador")
+  cortadores_0__maquina_codigo           String?             @map("cortadores[0].maquina_codigo")
+  cortadores_1__maquina_codigo           String?             @map("cortadores[1].maquina_codigo")
+  cortadores_2__maquina_codigo           String?             @map("cortadores[2].maquina_codigo")
+  cortadores_3__maquina_codigo           String?             @map("cortadores[3].maquina_codigo")
+  cortadores_0__metragem_linear          String?             @map("cortadores[0].metragem_linear")
+  cortadores_1__metragem_linear          String?             @map("cortadores[1].metragem_linear")
+  cortadores_2__metragem_linear          String?             @map("cortadores[2].metragem_linear")
+  cortadores_3__metragem_linear          String?             @map("cortadores[3].metragem_linear")
+  cortadores_0__perda_metragem_quadrada  String?             @map("cortadores[0].perda_metragem_quadrada")
+  cortadores_1__perda_metragem_quadrada  String?             @map("cortadores[1].perda_metragem_quadrada")
+  cortadores_2__perda_metragem_quadrada  String?             @map("cortadores[2].perda_metragem_quadrada")
+  cortadores_3__perda_metragem_quadrada  String?             @map("cortadores[3].perda_metragem_quadrada")
+  producao_algo_novo_0_                  String?             @map("producao.algo_novo[0]")
+  producao_algo_novo_1_                  String?             @map("producao.algo_novo[1]")
+  producao_algo_novo_2_                  String?             @map("producao.algo_novo[2]")
+  faca_largura                           String?             @map("faca.largura")
+  faca_altura                            String?             @map("faca.altura")
+  faca_colunas                           String?             @map("faca.colunas")
+  atraso_desconsiderar                   Boolean?            @map("atraso.desconsiderar")
+  atraso_motivo                          String?             @map("atraso.motivo")
+  pasta_de_arquivamento                  String?
+  atraso_categoria                       String?             @map("atraso.categoria")
+  revisores_9__operador                  String?             @map("revisores[9].operador")
+  revisores_9__maquina_codigo            String?             @map("revisores[9].maquina_codigo")
+  revisores_9__metragem_linear           String?             @map("revisores[9].metragem_linear")
+  clientes                               clientes?           @relation(fields: [cliente_codigo], references: [codigo], onDelete: NoAction, onUpdate: NoAction, map: "Pedidos_cliente_codigo_fkey")
+  facas                                  facas?              @relation(fields: [faca_codigo], references: [codigo], onDelete: NoAction, onUpdate: NoAction, map: "Pedidos_faca.codigo_fkey")
+  materiais                              materiais?          @relation(fields: [producao_material_codigo], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  pedidos_operacoes                      pedidos_operacoes[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pedidos_operacoes {
+  codigo                  BigInt      @id(map: "Pedidos - Operações_pkey") @default(autoincrement())
+  pedido_codigo           BigInt
+  tipo                    String?
+  operador_codigo         BigInt?
+  maquina_codigo          BigInt?
+  metragem_linear         Float?
+  perda_metragem_quadrada Float?
+  maquinas                maquinas?   @relation(fields: [maquina_codigo], references: [codigo], onDelete: NoAction, onUpdate: NoAction, map: "Pedidos - Operações_maquina_codigo_fkey")
+  operadores              operadores? @relation(fields: [operador_codigo], references: [codigo], onDelete: NoAction, onUpdate: NoAction, map: "Pedidos - Operações_operador_codigo_fkey")
+  pedidos                 pedidos     @relation(fields: [pedido_codigo], references: [codigo], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model roteiros {
+  id        BigInt   @id @default(autoincrement())
+  impressao String[]
+  corte     String[]
+  revisao   String[]
+}

@@ -1,0 +1,8 @@
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model users {
+  name        String?
+  email       String? @unique(map: "users_email_key")
+  password    String?
+  accountType String?
+  codigo      BigInt  @id(map: "Users_pkey") @unique(map: "Users_codigo_key") @default(autoincrement())
+}

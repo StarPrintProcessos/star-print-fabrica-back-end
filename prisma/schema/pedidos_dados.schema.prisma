@@ -1,0 +1,76 @@
+model pedidos_dados {
+  codigo_pedido          Int      @id
+  cliente_codigo         Int?
+  cliente_nome_fantasia  String?
+  cliente_razao_social   String?
+
+  data_pedido            DateTime?
+  data_baixa_pcp         DateTime?
+  data_finalizacao       DateTime?
+  data_previsao          DateTime?
+
+  atraso                 Boolean?
+  divergencia_dias_uteis Int?
+  atraso_investigacao    String?
+  atraso_motivo          String?
+  atraso_desconsiderar   Boolean?
+
+  descricao              String?
+
+  eh_amostra             Boolean?
+  acabamento_cold        Boolean?
+  retrabalho             Boolean?
+  redimensionamento      Boolean?
+  desconsiderar_metragem Boolean?
+
+  algo_novo              String[]
+  algo_novo_texto        String?
+
+  cores                  Int?
+  pistas_de_corte        Int?
+  metros_por_pacote      Float?
+  quantidade_por_pacote  Int?
+  metragem_linear        Float?
+  unidades_produzidas    Int?
+
+  perda_investigacao     String?
+  perda_motivo           String?
+  perda_justificativa    String?
+
+  material_codigo        Int?
+  materia_prima_codigo   Int?
+  largura_material_mm    Int?
+  nome_materia_prima     String?
+  tipo_materia_prima     String?
+
+  codigo_faca            String?
+  tipo_faca              String?
+  largura_faca           Float?
+  altura_faca            Float?
+  colunas_faca           Int?
+  fator_faca             Float?
+  numero_de_dentes_faca  Int?
+  l1_corte_faca          Int?
+
+  operacoes              Json?
+  maquina_impressao      String?
+  maquina_corte          String?
+  maquina_revisao        String?
+  
+  segmento               String?
+  metragem_total_m2      Float?
+  producao_m2            Float?
+  perda_m2               Float?
+  perda_percentual       Float?
+  
+  
+  nc_checklist           Boolean?
+  nc_rastreio            Boolean?
+
+  validado               Boolean?
+
+  observacao             String?
+  pasta_de_arquivamento  String?
+
+  @@map("pedidos_dados")
+}

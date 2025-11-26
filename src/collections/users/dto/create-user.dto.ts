@@ -1,10 +1,12 @@
 import {
-    IsEmail,
-    IsIn,
-    IsString,
-    MinLength
+  IsEmail,
+  IsIn,
+  IsOptional,
+  IsString,
+  MinLength
 } from 'class-validator';
-import * as userSchema from '../schemas/user.schema';
+
+import * as accountTypes from '../constants/account-types';
 
 export class CreateUserDto {
   @IsEmail()
@@ -17,6 +19,7 @@ export class CreateUserDto {
   @MinLength(6)
   password: string;
 
-  @IsIn(userSchema.ACCOUNT_TYPES)
-  accountType: userSchema.AccountType;
+  @IsOptional()
+  @IsIn(accountTypes.ACCOUNT_TYPES)
+  accountType?: accountTypes.AccountType;
 }
