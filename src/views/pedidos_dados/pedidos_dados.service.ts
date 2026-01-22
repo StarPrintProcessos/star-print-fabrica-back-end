@@ -153,7 +153,7 @@ export class PedidosDadosService {
         where,
         skip,
         take,
-        orderBy: { data_finalizacao: 'desc' },
+        orderBy: { codigo_pedido: 'desc' },
       }),
       this.prisma.pedidos_dados.count({ where }),
     ]);

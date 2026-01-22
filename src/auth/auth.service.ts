@@ -9,7 +9,7 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.usersService.validatePassword(email, password);
     if (!user) throw new UnauthorizedException('Credenciais inválidas!');
-    const payload = { sub: (user as any).codigo.toString(), email: user.email };
+    const payload = { email: user.email };
     return {
       access_token: this.jwtService.sign(payload),
       user,

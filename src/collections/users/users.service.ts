@@ -34,11 +34,15 @@ export class UsersService {
     }
 
     return this.prisma.users.findUnique({
-      where: { codigo: userId },
+      where: { id: userId },
     });
   }
 
   async findByEmail(email: string) {
+    if (!email) {
+      throw new Error('Email is required');
+    }
+
     return this.prisma.users.findUnique({
       where: { email },
     });
