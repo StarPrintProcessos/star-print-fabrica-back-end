@@ -4,8 +4,9 @@
     "node_modules",
     "test",
     "dist",
-    "**/*spec.ts",
-    "src/collections/pedidos/**",
-    "src/collections/clientes/**"
+    "**/*.spec.ts",
+    "prisma.config.ts",
+    "src/collections/clientes/**",
+    "src/collections/pedidos/**"
   ]
 }
