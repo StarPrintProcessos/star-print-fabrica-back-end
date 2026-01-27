@@ -26,6 +26,7 @@ async function bootstrap() {
     app.enableCors({
       origin: [
         process.env.FRONT_END_URL,
+        'https://app.starprintonline.com',
         'https://backapp.starprintonline.com',
       ],
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -35,6 +36,8 @@ async function bootstrap() {
     // Habilita CORS para qualquer URL
     app.enableCors();
   }
+
+  app.enableCors();
 
   // Em produção, escuta em todas as interfaces (0.0.0.0)
   // Isso é crucial para contêineres Docker
