@@ -8,10 +8,10 @@ RUN npm install
 COPY . .
 
 # 🔑 DATABASE_URL fake só para gerar o Prisma Client
-ENV DATABASE_URL="postgresql://user:pass@localhost:5432/fake"
+# ENV DATABASE_URL="postgresql://user:pass@localhost:5432/fake"
 
 # ✅ Gera o Prisma Client (tipos, models, métodos)
-RUN npx prisma generate
+# RUN npx prisma generate
 
 # ✅ Agora o Nest consegue compilar
 RUN npm run build
